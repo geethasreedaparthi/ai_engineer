@@ -7,6 +7,7 @@ interface ProjectInteractiveModalProps {
   githubUrl: string;
   isDark: boolean;
   onClose: () => void;
+  onRequestCustomize?: () => void;
 }
 
 export const ProjectInteractiveModal: React.FC<ProjectInteractiveModalProps> = ({
@@ -14,6 +15,7 @@ export const ProjectInteractiveModal: React.FC<ProjectInteractiveModalProps> = (
   githubUrl,
   isDark,
   onClose,
+  onRequestCustomize,
 }) => {
   const [activeTab, setActiveTab] = useState<'interactive' | 'code'>('interactive');
   const [copiedCode, setCopiedCode] = useState(false);
@@ -297,6 +299,16 @@ export const ProjectInteractiveModal: React.FC<ProjectInteractiveModalProps> = (
             href={githubUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => {
+              if (
+                (githubUrl.includes('YOUR_USERNAME') || githubUrl.includes('[YOUR')) &&
+                onRequestCustomize
+              ) {
+                e.preventDefault();
+                onClose();
+                onRequestCustomize();
+              }
+            }}
             className={`inline-flex items-center gap-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
               isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
             }`}

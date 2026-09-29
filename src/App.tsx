@@ -33,8 +33,47 @@ import { PlaceholderCustomizerModal } from './components/PlaceholderCustomizerMo
 export default function App() {
   const [isDark, setIsDark] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
-  const [profile, setProfile] = useState<PortfolioProfile>(DEFAULT_PROFILE);
+  const [profile, setProfile] = useState<PortfolioProfile>(() => {
+    try {
+      const saved = localStorage.getItem('btech_portfolio_profile_v1');
+      if (saved) {
+        return { ...DEFAULT_PROFILE, ...JSON.parse(saved) };
+      }
+    } catch {
+      // Fallback to default profile
+    }
+    return DEFAULT_PROFILE;
+  });
   const [isCustomizerOpen, setIsCustomizerOpen] = useState<boolean>(false);
+
+  const handleSaveProfile = (updated: PortfolioProfile) => {
+    setProfile(updated);
+    try {
+      localStorage.setItem('btech_portfolio_profile_v1', JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  const handleResetProfile = () => {
+    setProfile(DEFAULT_PROFILE);
+    try {
+      localStorage.removeItem('btech_portfolio_profile_v1');
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
+  const handleGitHubLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (
+      profile.githubUrl.includes('YOUR_USERNAME') ||
+      profile.githubUrl.includes('[YOUR') ||
+      !profile.githubUrl.startsWith('http')
+    ) {
+      e.preventDefault();
+      setIsCustomizerOpen(true);
+    }
+  };
 
   // Hero code workbench selector
   const [selectedHeroProjectIndex, setSelectedHeroProjectIndex] = useState<number>(0);
@@ -326,6 +365,7 @@ export default function App() {
                       href={profile.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={handleGitHubLinkClick}
                       className={`inline-flex items-center gap-2 font-medium transition-colors whitespace-nowrap ${
                         isDark ? 'hover:text-white' : 'hover:text-slate-900'
                       }`}
@@ -449,6 +489,7 @@ export default function App() {
                         href={profile.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={handleGitHubLinkClick}
                         className={`inline-flex items-center gap-1 text-xs font-medium transition-colors whitespace-nowrap ${
                           isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                         }`}
@@ -681,6 +722,7 @@ export default function App() {
                 href={profile.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={handleGitHubLinkClick}
                 className={`inline-flex items-center gap-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${
                   isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
                 }`}
@@ -750,6 +792,7 @@ export default function App() {
                       href={profile.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={handleGitHubLinkClick}
                       className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors whitespace-nowrap shrink-0"
                     >
                       <Github className="w-3.5 h-3.5" />
@@ -1348,6 +1391,7 @@ export default function App() {
               href={profile.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleGitHubLinkClick}
               aria-label="GitHub"
               className={`p-2.5 rounded-lg border transition-colors ${
                 isDark
@@ -1378,6 +1422,7 @@ export default function App() {
         githubUrl={profile.githubUrl}
         isDark={isDark}
         onClose={() => setActiveModalProject(null)}
+        onRequestCustomize={() => setIsCustomizerOpen(true)}
       />
 
       {/* Personalize Placeholders Modal */}
@@ -1385,8 +1430,8 @@ export default function App() {
         isOpen={isCustomizerOpen}
         profile={profile}
         isDark={isDark}
-        onSave={(updated) => setProfile(updated)}
-        onReset={() => setProfile(DEFAULT_PROFILE)}
+        onSave={handleSaveProfile}
+        onReset={handleResetProfile}
         onClose={() => setIsCustomizerOpen(false)}
       />
     </div>
